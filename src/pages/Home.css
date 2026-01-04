@@ -1,0 +1,106 @@
+/* Screen wrapper */
+.screen {
+  padding: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-icon {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Categories */
+.categories {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.category-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #eee;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Quote card */
+.quote-wrapper {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.quote-image {
+  width: 100%;
+  display: block;
+}
+
+/* Date badge */
+.date-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #7c3aed;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* User photo / logo */
+.user-image {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.6);
+}
+
+/* User name */
+.user-name {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* Next button */
+.next-btn {
+  margin-top: 16px;
+  padding: 10px;
+  width: 100%;
+  font-size: 14px;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.actions button {
+  flex: 1;
+  margin: 0 4px;
+  padding: 8px;
+  font-size: 13px;
+}

@@ -1,0 +1,108 @@
+.upgrade-screen {
+  text-align: center;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #323232;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+  animation: fadeInOut 2.5s ease;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+
+.premium-preview {
+  margin: 24px 0;
+}
+
+.preview-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.plans {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.plan-card {
+  flex: 1;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+}
+
+.plan-card.highlighted {
+  border: 2px solid #7c3aed;
+  background: #f5f3ff;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.subtext {
+  font-size: 12px;
+  color: #555;
+}
+
+.free-version {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.free-version ul {
+  padding-left: 16px;
+}
+
+.free-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.free-actions button {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
