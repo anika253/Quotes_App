@@ -1,11 +1,3 @@
-/* Screen wrapper */
-.screen {
-  padding: 16px;
-  max-width: 420px;
-  margin: 0 auto;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
 /* Top bar */
 .top-bar {
   display: flex;
@@ -14,8 +6,15 @@
 }
 
 .profile-icon {
-  font-size: 20px;
   cursor: pointer;
+}
+
+.top-profile-image {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #7c3aed;
 }
 
 /* Categories */
@@ -23,15 +22,21 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  margin: 16px 0;
+  margin: 12px 0;
 }
 
 .category-pill {
   padding: 6px 12px;
   border-radius: 20px;
   background: #eee;
-  font-size: 12px;
+  cursor: pointer;
   white-space: nowrap;
+  font-size: 14px;
+}
+
+.category-pill.active {
+  background: #7c3aed;
+  color: white;
 }
 
 /* Quote card */
@@ -46,61 +51,74 @@
   display: block;
 }
 
-/* Date badge */
 .date-badge {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   background: #7c3aed;
   color: white;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
 }
 
-/* User photo / logo */
+/* User photo on quote */
 .user-image {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
+  bottom: 12px;
+  left: 12px;
   width: 64px;
   height: 64px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid white;
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.6);
+  animation: glow 2s infinite;
 }
 
-/* User name */
+/* Glow effect */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(124, 58, 237, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(124, 58, 237, 0.6);
+  }
+}
+
 .user-name {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.5);
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
   color: white;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
 }
 
-/* Next button */
-.next-btn {
+/* Navigation buttons */
+.nav-buttons {
+  display: flex;
+  gap: 12px;
   margin-top: 16px;
+}
+
+.nav-buttons button {
+  flex: 1;
   padding: 10px;
-  width: 100%;
-  font-size: 14px;
 }
 
 /* Action buttons */
 .actions {
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
   margin-top: 16px;
 }
 
 .actions button {
   flex: 1;
-  margin: 0 4px;
-  padding: 8px;
-  font-size: 13px;
+  padding: 10px;
 }

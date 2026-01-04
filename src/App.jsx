@@ -7,6 +7,7 @@ import ProfileSetup from "./pages/ProfileSetup";
 import Home from "./pages/Home";
 import EditDesign from "./pages/EditDesign";
 import Upgrade from "./pages/Upgrade";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/purpose" element={<PurposeSelection />} />
       <Route path="/profile-setup" element={<ProfileSetup />} />
       <Route path="/upgrade" element={<Upgrade />} />
+      <Route path="/profile" element={<Profile />} />
 
       {/* Main App */}
       <Route path="/home" element={<Home />} />
