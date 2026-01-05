@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import quotes from "../data/quotes.js";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Share2,
+  Download,
+  Edit3,
+  User,
+} from "lucide-react";
+import quotes from "../data/quotes";
 import "./Home.css";
 
 const categories = [
@@ -14,7 +22,6 @@ const categories = [
 
 const Home = () => {
   const navigate = useNavigate();
-
   const [current, setCurrent] = useState(0);
   const [activeCategory, setActiveCategory] = useState(categories[0]);
 
@@ -28,7 +35,11 @@ const Home = () => {
   const showDate = localStorage.getItem("showDate") !== "false";
 
   if (!quotes || quotes.length === 0) {
-    return <div className="screen">No quotes available</div>;
+    return (
+      <div className="empty-screen">
+        <p>No quotes available</p>
+      </div>
+    );
   }
 
   const quote = quotes[current];
@@ -41,15 +52,13 @@ const Home = () => {
     setCurrent((prev) => (prev === 0 ? quotes.length - 1 : prev - 1));
   };
 
-  // WhatsApp Share
   const handleShare = () => {
     const message = encodeURIComponent(
-      `"${quote.text}"\n\nCreated using Suvichar App\n${window.location.href}`
+      `"${quote.text}"\n\nCreated using Suvichar App`
     );
     window.open(`https://wa.me/?text=${message}`, "_blank");
   };
 
-  // Download + save to profile
   const handleDownload = () => {
     const link = document.createElement("a");
     link.href = quote.image;
@@ -58,69 +67,85 @@ const Home = () => {
     link.click();
     document.body.removeChild(link);
 
-    const downloads = JSON.parse(localStorage.getItem("downloads")) || [];
-    downloads.push(quote.image);
-    localStorage.setItem("downloads", JSON.stringify(downloads));
+    // ✅ session-based storage
+    const existing = JSON.parse(sessionStorage.getItem("downloads")) || [];
 
-    alert("Quote downloaded and saved to profile");
+    if (!existing.includes(quote.image)) {
+      existing.push(quote.image);
+      sessionStorage.setItem("downloads", JSON.stringify(existing));
+    }
   };
 
   return (
-    <div className="screen">
-      {/* Top Bar */}
-      <div className="top-bar">
-        <h3>Suvichar</h3>
+    <div className="home-container">
+      {/* Header */}
+      <header className="top-bar">
+        <h1 className="app-title">Suvichar</h1>
 
-        <div className="profile-icon" onClick={() => navigate("/profile")}>
-          <img
-            src={userImage || "/default-profile.png"}
-            alt="profile"
-            className="top-profile-image"
-          />
-        </div>
-      </div>
+        <button className="profile-btn" onClick={() => navigate("/profile")}>
+          {userImage ? (
+            <img src={userImage} alt="Profile" />
+          ) : (
+            <User size={18} />
+          )}
+        </button>
+      </header>
 
-      {/* Category Pills */}
+      {/* Categories */}
       <div className="categories">
         {categories.map((cat) => (
-          <span
+          <button
             key={cat}
-            className={`category-pill ${
-              activeCategory === cat ? "active" : ""
-            }`}
+            className={activeCategory === cat ? "category active" : "category"}
             onClick={() => {
               setActiveCategory(cat);
               setCurrent(0);
             }}
           >
             {cat}
-          </span>
+          </button>
         ))}
       </div>
 
       {/* Quote Card */}
-      <div className="quote-wrapper">
-        <img src={quote.image} alt="quote" className="quote-image" />
+      <main className="quote-area">
+        <div className="quote-card">
+          <img src={quote.image} alt="Quote" />
 
-        {showDate && <div className="date-badge">17 नवंबर</div>}
+          {showDate && <div className="date-badge">17 नवंबर</div>}
 
-        {userImage && <img src={userImage} alt="user" className="user-image" />}
+          {userImage && (
+            <img src={userImage} alt="User" className="user-avatar" />
+          )}
 
-        {userName && <div className="user-name">{userName}</div>}
-      </div>
+          {userName && <div className="user-name">{userName}</div>}
 
-      {/* Navigation */}
-      <div className="nav-buttons">
-        <button onClick={prevQuote}>Previous</button>
-        <button onClick={nextQuote}>Next</button>
-      </div>
+          <button className="nav-btn left" onClick={prevQuote}>
+            <ChevronLeft />
+          </button>
 
-      {/* Actions */}
-      <div className="actions">
-        <button onClick={handleShare}>Share</button>
-        <button onClick={handleDownload}>Download</button>
-        <button onClick={() => navigate("/edit")}>EDIT</button>
-      </div>
+          <button className="nav-btn right" onClick={nextQuote}>
+            <ChevronRight />
+          </button>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="actions">
+        <div className="action-row">
+          <button onClick={handleShare}>
+            <Share2 size={16} /> Share
+          </button>
+
+          <button onClick={handleDownload}>
+            <Download size={16} /> Download
+          </button>
+        </div>
+
+        <button className="edit-btn" onClick={() => navigate("/edit")}>
+          <Edit3 size={16} /> EDIT DESIGN
+        </button>
+      </footer>
     </div>
   );
 };

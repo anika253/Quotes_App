@@ -1,73 +1,87 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./ProfileSetup.css";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
-  const purpose = localStorage.getItem("purpose"); // PERSONAL or BUSINESS
+  const purpose = localStorage.getItem("purpose"); // PERSONAL | BUSINESS
 
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
 
+  const isPersonal = purpose === "PERSONAL";
+
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageURL = URL.createObjectURL(file);
-      setImage(imageURL);
-      localStorage.setItem("userImage", imageURL);
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const imageURL = URL.createObjectURL(file);
+    setImage(imageURL);
+
+    localStorage.setItem(isPersonal ? "userImage" : "businessImage", imageURL);
   };
 
   const handleSave = () => {
-    if (purpose === "PERSONAL") {
-      localStorage.setItem("userName", name);
-    } else {
-      localStorage.setItem("businessName", name);
-    }
-    navigate("/home");
-  };
+    if (!name.trim()) return;
 
-  const handleSkip = () => {
+    localStorage.setItem(isPersonal ? "userName" : "businessName", name.trim());
+
     navigate("/home");
   };
 
   return (
-    <div className="screen">
-      <h2>Set up your profile</h2>
+    <div className="profile-container">
+      <div className="profile-card">
+        <div className="profile-icon">{isPersonal ? "👤" : "🏢"}</div>
 
-      {purpose === "PERSONAL" && (
-        <>
-          <p>Add your photo and name</p>
+        <h2 className="profile-title">Set up your profile</h2>
+        <p className="profile-subtitle">
+          {isPersonal
+            ? "Add your photo and name"
+            : "Add your logo and business name"}
+        </p>
 
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+        {/* Image Upload */}
+        <div className="image-upload">
+          {image && (
+            <img
+              src={image}
+              alt="preview"
+              className={isPersonal ? "avatar" : "logo"}
+            />
+          )}
 
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </>
-      )}
+          <label className="upload-btn">
+            Upload {isPersonal ? "Photo" : "Logo"}
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleImageUpload}
+            />
+          </label>
+        </div>
 
-      {purpose === "BUSINESS" && (
-        <>
-          <p>Add your logo and business name</p>
+        {/* Name Input */}
+        <input
+          className="profile-input"
+          type="text"
+          placeholder={isPersonal ? "Enter your name" : "Enter business name"}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+        {/* Actions */}
+        <button
+          className="primary-btn"
+          disabled={!name.trim()}
+          onClick={handleSave}
+        >
+          Save & Continue
+        </button>
 
-          <input
-            type="text"
-            placeholder="Enter business name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </>
-      )}
-
-      <div style={{ marginTop: 24 }}>
-        <button onClick={handleSave}>Save & Continue</button>
-        <button onClick={handleSkip} style={{ marginLeft: 12 }}>
-          Skip
+        <button className="secondary-btn" onClick={() => navigate("/home")}>
+          Skip for now
         </button>
       </div>
     </div>

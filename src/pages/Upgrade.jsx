@@ -1,79 +1,133 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Crown,
+  Check,
+  X,
+  Share2,
+  Download,
+  ArrowLeft,
+  Sparkles,
+} from "lucide-react";
+import { useToast } from "../hooks/useToast";
 import "./Upgrade.css";
 
 const Upgrade = () => {
-  const [toast, setToast] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [selectedPlan, setSelectedPlan] = useState("yearly");
 
-  // Read data from localStorage
-  const purpose = localStorage.getItem("purpose"); // PERSONAL or BUSINESS
+  const purpose = localStorage.getItem("purpose");
   const userName = localStorage.getItem("userName");
   const businessName = localStorage.getItem("businessName");
 
-  // Decide what name to show
   const displayName = purpose === "BUSINESS" ? businessName : userName;
 
   const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => setToast(""), 2500);
+    toast({
+      title: message,
+      duration: 2500,
+    });
   };
 
   return (
-    <div className="screen upgrade-screen">
-      <h2>Upgrade to Premium</h2>
+    <div className="upgrade-container">
+      {/* Header */}
+      <header className="upgrade-header">
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          <ArrowLeft />
+        </button>
+        <h1>Upgrade to Premium</h1>
+      </header>
 
-      {/* Toast */}
-      {toast && <div className="toast">{toast}</div>}
-
-      {/* Premium Preview */}
-      <div className="premium-preview">
-        <div className="preview-avatar">👑</div>
-        <h3>{displayName || "Your Brand Name"}</h3>
-        <p>Premium Branding Preview</p>
-      </div>
-
-      {/* Plan Cards */}
-      <div className="plans">
-        <div
-          className="plan-card"
-          onClick={() => showToast("Payment flow coming soon")}
-        >
-          <h4>Monthly</h4>
-          <p className="price">₹199 / month</p>
+      <main className="upgrade-main">
+        {/* Preview */}
+        <div className="preview-card">
+          <div className="preview-icon">
+            <Crown />
+          </div>
+          <h3>{displayName || "Your Brand Name"}</h3>
+          <p className="preview-sub">
+            <Sparkles /> Premium Branding Preview
+          </p>
         </div>
 
-        <div
-          className="plan-card highlighted"
+        {/* Plans */}
+        <div className="plans">
+          <button
+            className={`plan ${selectedPlan === "monthly" ? "active" : ""}`}
+            onClick={() => setSelectedPlan("monthly")}
+          >
+            <h4>Monthly</h4>
+            <p className="price">₹199</p>
+            <span>per month</span>
+          </button>
+
+          <button
+            className={`plan ${selectedPlan === "yearly" ? "active" : ""}`}
+            onClick={() => setSelectedPlan("yearly")}
+          >
+            <span className="badge">BEST VALUE</span>
+            <h4>Yearly</h4>
+            <p className="price">₹999</p>
+            <span>₹83 / month</span>
+          </button>
+        </div>
+
+        {/* Subscribe */}
+        <button
+          className="subscribe-btn"
           onClick={() => showToast("Payment flow coming soon")}
         >
-          <h4>Yearly</h4>
-          <p className="price">₹999 / year</p>
-          <span className="subtext">₹83/month equivalent</span>
+          <Crown /> Subscribe Now
+        </button>
+
+        {/* Premium Features */}
+        <div className="features-card">
+          <h4>
+            <Sparkles /> Premium Features
+          </h4>
+          <ul>
+            <li>
+              <Check /> Custom name & logo branding
+            </li>
+            <li>
+              <Check /> Contact & organization details
+            </li>
+            <li>
+              <Check /> Unlimited quote templates
+            </li>
+            <li>
+              <Check /> Priority support
+            </li>
+          </ul>
         </div>
-      </div>
 
-      {/* Free Version Section */}
-      <div className="free-version">
-        <h4>Free Version</h4>
-        <ul>
-          <li>❌ No name/logo branding</li>
-          <li>❌ Contact & organization details locked</li>
-          <li>❌ Limited quote templates</li>
-        </ul>
-      </div>
+        {/* Free Info */}
+        <div className="free-card">
+          <h4>Free Version Limitations</h4>
+          <ul>
+            <li>
+              <X /> No name/logo branding
+            </li>
+            <li>
+              <X /> Contact & org details locked
+            </li>
+            <li>
+              <X /> Limited quote templates
+            </li>
+          </ul>
 
-      {/* Free Actions */}
-      <div className="free-actions">
-        <button
-          onClick={() => showToast("Free version share (without branding)")}
-        >
-          Share
-        </button>
-        <button
-          onClick={() => showToast("Free version download (without branding)")}
-        >
-          Download
-        </button>
-      </div>
+          <div className="free-actions">
+            <button onClick={() => showToast("Free share (no branding)")}>
+              <Share2 /> Share
+            </button>
+            <button onClick={() => showToast("Free download (no branding)")}>
+              <Download /> Download
+            </button>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

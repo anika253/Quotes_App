@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { User, Edit3, Download, ArrowLeft, Image } from "lucide-react";
 import "./Profile.css";
 
 const Profile = () => {
@@ -9,55 +10,80 @@ const Profile = () => {
   const userName = localStorage.getItem("userName");
   const businessName = localStorage.getItem("businessName");
   const userImage = localStorage.getItem("userImage");
-  const phone = localStorage.getItem("phone"); // 🔥 FIXED
+  const phone = localStorage.getItem("phone");
 
   const displayName = purpose === "BUSINESS" ? businessName : userName;
 
   const [downloads, setDownloads] = useState([]);
 
   useEffect(() => {
-    const savedDownloads = JSON.parse(localStorage.getItem("downloads")) || [];
-    setDownloads(savedDownloads);
+    // ✅ session-only downloads
+    const saved = JSON.parse(sessionStorage.getItem("downloads") || "[]");
+    setDownloads(saved);
   }, []);
 
   return (
-    <div className="screen profile-screen">
-      <h2>Profile</h2>
+    <div className="profile-container">
+      {/* Decorative Blurs */}
+      <div className="blur-top" />
+      <div className="blur-bottom" />
 
+      {/* Back */}
+      <button className="back-btn" onClick={() => navigate("/home")}>
+        <ArrowLeft />
+      </button>
+
+      {/* Card */}
       <div className="profile-card">
-        <img
-          src={userImage || "/default-profile.png"}
-          alt="profile"
-          className="profile-image"
-        />
+        {/* Header */}
+        <div className="profile-header">
+          <div className="avatar-wrapper">
+            {userImage ? (
+              <img src={userImage} alt="Profile" className="avatar-img" />
+            ) : (
+              <div className="avatar-placeholder">
+                <User />
+              </div>
+            )}
+          </div>
 
-        <h3>{displayName || "Your Name"}</h3>
+          <h2>{displayName || "Your Name"}</h2>
+          <p className="phone">{phone || "+91 XXXXXXXXXX"}</p>
 
-        <p>{phone || "+91 XXXXXXXX"}</p>
+          <button className="edit-btn" onClick={() => navigate("/edit")}>
+            <Edit3 /> Edit Profile
+          </button>
+        </div>
 
-        <button className="edit-profile-btn" onClick={() => navigate("/edit")}>
-          EDIT PROFILE
-        </button>
-      </div>
+        {/* Downloads */}
+        <div className="downloads-section">
+          <div className="downloads-title">
+            <Download />
+            <h3>Downloaded Quotes</h3>
+          </div>
 
-      <div className="downloads">
-        <h4>Downloaded Quotes</h4>
-
-        <div className="quotes-grid">
           {downloads.length === 0 ? (
-            <div className="empty-state">No downloaded quotes yet</div>
+            <div className="empty-downloads">
+              <Image />
+              <p>No downloaded quotes yet</p>
+              <span>Your downloads will appear here</span>
+            </div>
           ) : (
-            downloads.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt="quote"
-                className="downloaded-quote"
-              />
-            ))
+            <div className="downloads-grid">
+              {downloads.map((img, index) => (
+                <div key={index} className="download-item">
+                  <img src={img} alt={`Quote ${index + 1}`} />
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <p className="profile-footer">
+        Made with ❤️ by <span>Suvichar</span>
+      </p>
     </div>
   );
 };

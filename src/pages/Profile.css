@@ -1,28 +1,220 @@
-.profile-image {
+/* ================= RESET ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ================= PAGE ================= */
+.profile-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6a6fdc, #c77ce8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 20px;
+  position: relative;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+}
+
+/* ================= DECORATIVE BLURS ================= */
+.blur-top,
+.blur-bottom {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  background: rgba(255, 255, 255, 0.18);
+  filter: blur(140px);
+  z-index: 0;
+}
+
+.blur-top {
+  top: -120px;
+  left: -120px;
+}
+
+.blur-bottom {
+  bottom: -120px;
+  right: -120px;
+}
+
+/* ================= BACK BUTTON ================= */
+.back-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 3;
+  backdrop-filter: blur(10px);
+}
+
+/* ================= CARD ================= */
+.profile-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 26px 22px 24px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
+  z-index: 1;
+}
+
+/* ================= HEADER ================= */
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Avatar wrapper */
+.avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+/* Avatar */
+.avatar-img {
   width: 96px;
   height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #7c3aed;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
-.quotes-grid {
+/* Placeholder */
+.avatar-placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.avatar-placeholder svg {
+  width: 36px;
+  height: 36px;
+  color: #6b7280;
+}
+
+/* Name */
+.profile-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+/* Phone */
+.phone {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+/* ================= EDIT BUTTON ================= */
+.edit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #7f45f0, #9b5cff);
+  border: none;
+  color: white;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(127, 69, 240, 0.45);
+  margin-bottom: 22px;
+}
+
+/* ================= DOWNLOADS ================= */
+.downloads-section {
+  margin-top: 6px;
+}
+
+.downloads-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 14px;
+}
+
+/* Empty state */
+.empty-downloads {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 10px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.empty-downloads svg {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+/* Grid (responsive) */
+.downloads-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   gap: 12px;
-  margin-top: 12px;
 }
 
-.downloaded-quote {
+/* Item */
+.download-item {
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f3f4f6;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.download-item img {
   width: 100%;
-  height: 140px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 8px;
 }
 
-.empty-state {
-  color: #777;
-  font-size: 14px;
+/* ================= FOOTER ================= */
+.profile-footer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
   text-align: center;
-  padding: 20px;
+}
+
+.profile-footer span {
+  font-weight: 600;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 480px) {
+  .profile-card {
+    padding: 22px 18px;
+  }
+
+  .avatar-img,
+  .avatar-placeholder {
+    width: 84px;
+    height: 84px;
+  }
 }

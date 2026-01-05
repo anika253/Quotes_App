@@ -1,49 +1,173 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f3f4f6;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.profile-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  margin: 0 auto 15px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.profile-wrapper:hover .camera-overlay {
+  opacity: 1;
+}
+
+.subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
 .tabs {
   display: flex;
-  gap: 8px;
-  margin: 16px 0;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .tab {
   flex: 1;
   padding: 10px;
-  border: 1px solid #ddd;
-  background: #f9f9f9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #e5e7eb;
 }
 
 .tab.active {
-  background: #7c3aed;
+  background: #2563eb;
   color: white;
 }
 
-.form {
+label {
+  font-size: 14px;
+  margin-top: 10px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0 12px;
+}
+
+.upload-btn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 2px dashed #2563eb;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toggle-row {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 15px;
 }
 
 .toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  width: 44px;
+  height: 22px;
+  background: #d1d5db;
+  border-radius: 20px;
+  border: none;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle span {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: 0.3s;
+}
+
+.toggle.on {
+  background: #2563eb;
+}
+
+.toggle.on span {
+  left: 24px;
 }
 
 .locked {
+  display: flex;
+  gap: 10px;
   padding: 10px;
-  background: #f0f0f0;
+  background: #f1f5f9;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 6px;
+  margin-bottom: 8px;
 }
 
 .save-btn {
-  margin-top: 16px;
-  padding: 10px;
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.skip-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #6b7280;
+  margin-top: 8px;
+  cursor: pointer;
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -53,5 +177,6 @@
   background: white;
   padding: 20px;
   border-radius: 12px;
-  width: 300px;
+  width: 90%;
+  max-width: 300px;
 }

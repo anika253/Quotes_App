@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { User, Lock, Camera } from "lucide-react";
 import "./EditDesign.css";
 
 const EditDesign = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const savedPurpose = localStorage.getItem("purpose") || "PERSONAL";
   const [activeTab, setActiveTab] = useState(savedPurpose);
@@ -14,15 +16,15 @@ const EditDesign = () => {
       : localStorage.getItem("userName") || ""
   );
 
-  const [image, setImage] = useState(localStorage.getItem("userImage"));
+  const [image, setImage] = useState(localStorage.getItem("userImage") || null);
+
   const [showDate, setShowDate] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageURL = URL.createObjectURL(file);
-      setImage(imageURL);
+      setImage(URL.createObjectURL(file));
     }
   };
 
@@ -37,60 +39,109 @@ const EditDesign = () => {
       localStorage.setItem("userImage", image);
     }
 
-    navigate("/home");
+    navigate("/");
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setName(
+      tab === "BUSINESS"
+        ? localStorage.getItem("businessName") || ""
+        : localStorage.getItem("userName") || ""
+    );
   };
 
   return (
-    <div className="screen">
-      <h2>Edit Design</h2>
+    <div className="container">
+      <div className="card">
+        {/* Profile */}
+        <div
+          className="profile-wrapper"
+          onClick={() => fileInputRef.current.click()}
+        >
+          {image ? (
+            <img src={image} alt="Profile" className="profile-img" />
+          ) : (
+            <User size={40} />
+          )}
+          <div className="camera-overlay">
+            <Camera size={20} />
+          </div>
+        </div>
 
-      {/* Tabs */}
-      <div className="tabs">
-        {["PERSONAL", "BUSINESS"].map((tab) => (
-          <button
-            key={tab}
-            className={activeTab === tab ? "tab active" : "tab"}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+        <h2>Edit Design</h2>
+        <p className="subtitle">Customize your profile settings</p>
 
-      {/* Editable Fields */}
-      <div className="form">
-        <label>Name</label>
+        {/* Tabs */}
+        <div className="tabs">
+          {["PERSONAL", "BUSINESS"].map((tab) => (
+            <button
+              key={tab}
+              className={activeTab === tab ? "tab active" : "tab"}
+              onClick={() => handleTabChange(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <label>
+          {activeTab === "BUSINESS" ? "Business Name" : "Your Name"}
+        </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <label>Photo</label>
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
+        {/* Upload */}
+        <button
+          className="upload-btn"
+          onClick={() => fileInputRef.current.click()}
+        >
+          Upload Photo
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          hidden
+        />
 
-        <div className="toggle">
-          <input
-            type="checkbox"
-            checked={showDate}
-            onChange={() => setShowDate(!showDate)}
-          />
+        {/* Toggle */}
+        <div className="toggle-row">
           <span>Show Date</span>
+          <button
+            className={showDate ? "toggle on" : "toggle"}
+            onClick={() => setShowDate(!showDate)}
+          >
+            <span />
+          </button>
         </div>
 
-        {/* Locked Fields */}
-        <div className="locked" onClick={() => setShowUpgrade(true)}>
-          🔒 About Yourself
-        </div>
-        <div className="locked" onClick={() => setShowUpgrade(true)}>
-          🔒 Contact Details
-        </div>
-        <div className="locked" onClick={() => setShowUpgrade(true)}>
-          🔒 Organization Details
-        </div>
+        {/* Locked fields */}
+        {["About Yourself", "Contact Details", "Organization Details"].map(
+          (item) => (
+            <div
+              key={item}
+              className="locked"
+              onClick={() => setShowUpgrade(true)}
+            >
+              <Lock size={16} />
+              <span>{item}</span>
+            </div>
+          )
+        )}
 
+        {/* Actions */}
         <button className="save-btn" onClick={handleSave}>
-          Save
+          Save & Continue
+        </button>
+
+        <button className="skip-btn" onClick={() => navigate("/")}>
+          Skip for now
         </button>
       </div>
 
@@ -99,7 +150,7 @@ const EditDesign = () => {
         <div className="modal-overlay">
           <div className="modal">
             <h3>Upgrade to Premium</h3>
-            <p>This feature is available for premium users.</p>
+            <p>This feature is available for premium users only.</p>
             <button onClick={() => navigate("/upgrade")}>View Plans</button>
             <button onClick={() => setShowUpgrade(false)}>Close</button>
           </div>
