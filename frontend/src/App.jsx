@@ -1,4 +1,6 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { api } from "./api";
 
 import Welcome from "./pages/Welcome";
 import OTP from "./pages/OTP";
@@ -10,6 +12,49 @@ import Upgrade from "./pages/Upgrade";
 import Profile from "./pages/Profile";
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      const publicPaths = ["/", "/otp"];
+      
+      if (token) {
+        try {
+          const response = await api.checkAuth();
+          if (response.data.user) {
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+            // If user is on a public path but logged in, redirect to home
+            if (publicPaths.includes(location.pathname)) {
+              navigate("/home");
+            }
+          }
+        } catch (error) {
+          console.error("Auth check failed:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          if (!publicPaths.includes(location.pathname)) {
+            navigate("/");
+          }
+        }
+      } else {
+        // No token, if on protected path, redirect to login
+        if (!publicPaths.includes(location.pathname)) {
+          navigate("/");
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [navigate, location.pathname]);
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
   return (
     <Routes>
       {/* Onboarding */}

@@ -1,8 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// In a real app, you'd use a service like Twilio to send actual OTPs.
-// For this implementation, we'll simulate the OTP sending.
 exports.sendOtp = async (req, res) => {
     try {
         const { phoneNumber } = req.body;
@@ -11,7 +9,6 @@ exports.sendOtp = async (req, res) => {
         }
 
         console.log(`Sending OTP to ${phoneNumber}`);
-        // Mock OTP for demonstration
         res.status(200).json({ message: 'OTP sent successfully', mockOtp: '123456' });
     } catch (error) {
         console.error('Error in sendOtp:', error);
@@ -27,17 +24,14 @@ exports.verifyOtp = async (req, res) => {
             return res.status(400).json({ message: 'Phone number and OTP are required' });
         }
 
-        // Professional verification logic
         if (otp === '123456') {
-            // Find or create user in MongoDB
-            let user = await User.findOne({ phoneNumber });
-            
-            if (!user) {
-                user = new User({ phoneNumber });
-                await user.save();
-            }
+            // Use findOneAndUpdate with upsert to avoid race conditions and duplicate key errors
+            const user = await User.findOneAndUpdate(
+                { phoneNumber },
+                { $setOnInsert: { phoneNumber } },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            );
 
-            // Generate JWT token
             const token = jwt.sign(
                 { userId: user._id, phoneNumber: user.phoneNumber },
                 process.env.JWT_SECRET,
@@ -61,6 +55,27 @@ exports.verifyOtp = async (req, res) => {
         }
     } catch (error) {
         console.error('Error in verifyOtp:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+exports.checkAuth = async (req, res) => {
+    try {
+        const user = await User.findById(req.userData.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ 
+            user: {
+                id: user._id,
+                phoneNumber: user.phoneNumber,
+                isProfileComplete: user.isProfileComplete,
+                name: user.name,
+                email: user.email,
+                subscriptionStatus: user.subscriptionStatus
+            }
+        });
+    } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }
 };

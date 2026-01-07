@@ -49,6 +49,8 @@ export const api = {
         return data;
     },
 
+    checkAuth: () => apiClient.get('/auth/check-auth'),
+
     setupProfile: (profileData) => apiClient.post('/profile/setup', profileData),
     
     getProfile: (phoneNumber) => apiClient.get(`/profile/get`, { params: { phoneNumber } }),

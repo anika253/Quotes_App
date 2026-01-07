@@ -4,5 +4,6 @@ const authController = require('../controllers/authController');
 
 router.post('/send-otp', authController.sendOtp);
 router.post('/verify-otp', authController.verifyOtp);
+router.get('/check-auth', require('../middleware/auth'), authController.checkAuth);
 
 module.exports = router;
