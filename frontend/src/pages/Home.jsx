@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -24,14 +24,17 @@ const Home = () => {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [activeCategory, setActiveCategory] = useState(categories[0]);
+  const [userData, setUserData] = useState(null);
 
-  const purpose = localStorage.getItem("purpose");
-  const userName =
-    purpose === "BUSINESS"
-      ? localStorage.getItem("businessName")
-      : localStorage.getItem("userName");
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUserData(JSON.parse(storedUser));
+    }
+  }, []);
 
-  const userImage = localStorage.getItem("userImage");
+  const userName = userData?.name || "";
+  const userImage = localStorage.getItem("userImage"); // Still using local for images for now as we don't have S3 upload yet
   const showDate = localStorage.getItem("showDate") !== "false";
 
   if (!quotes || quotes.length === 0) {
@@ -67,7 +70,6 @@ const Home = () => {
     link.click();
     document.body.removeChild(link);
 
-    // ✅ session-based storage
     const existing = JSON.parse(sessionStorage.getItem("downloads")) || [];
 
     if (!existing.includes(quote.image)) {
