@@ -60,14 +60,16 @@ const OTP = () => {
     if (otpString.length === 6) {
       try {
         const response = await api.verifyOtp(phone, otpString);
+        // Axios response data is already handled in api.verifyOtp
         if (response.token) {
-          localStorage.setItem("phoneNumber", phone);
           navigate("/purpose");
         } else {
           alert(response.message || "Invalid OTP");
         }
       } catch (error) {
-        alert("Verification failed");
+        console.error("Verification error:", error);
+        const errorMessage = error.response?.data?.message || "Verification failed";
+        alert(errorMessage);
       }
     } else {
       alert("Enter 6-digit OTP");

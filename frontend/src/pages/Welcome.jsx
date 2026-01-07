@@ -6,16 +6,21 @@ import "./Welcome.css";
 
 const Welcome = () => {
   const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleContinue = async () => {
     if (phone.length === 10) {
+      setLoading(true);
       try {
         await api.sendOtp(phone);
-        localStorage.setItem("phone", `+91 ${phone}`);
+        // Store phone for reference in OTP page
         navigate("/otp", { state: { phone } });
       } catch (error) {
-        alert("Failed to send OTP");
+        console.error("Send OTP error:", error);
+        alert("Failed to send OTP. Please try again.");
+      } finally {
+        setLoading(false);
       }
     } else {
       alert("Enter valid 10-digit number");
@@ -55,9 +60,9 @@ const Welcome = () => {
         <button
           className="continue-btn"
           onClick={handleContinue}
-          disabled={!isValidPhone}
+          disabled={!isValidPhone || loading}
         >
-          Continue
+          {loading ? "Sending..." : "Continue"}
         </button>
 
         <p className="terms-text">
