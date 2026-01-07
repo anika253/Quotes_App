@@ -41,4 +41,8 @@ export const api = {
         });
         return response.json();
     },
+    getCategories: async () => {
+        const response = await fetch(`${API_BASE_URL}/quotes/categories`);
+        return response.json();
+    },
 };
