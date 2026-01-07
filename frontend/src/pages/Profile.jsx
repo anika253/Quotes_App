@@ -1,25 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { User, Edit3, Download, ArrowLeft, Image } from "lucide-react";
+import { api } from "../api";
 import "./Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
 
-  const purpose = localStorage.getItem("purpose");
-  const userName = localStorage.getItem("userName");
-  const businessName = localStorage.getItem("businessName");
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const userImage = localStorage.getItem("userImage");
-  const phone = localStorage.getItem("phone");
-
-  const displayName = purpose === "BUSINESS" ? businessName : userName;
+  
+  const displayName = storedUser.name || "Your Name";
+  const phone = storedUser.phoneNumber || "+91 XXXXXXXXXX";
 
   const [downloads, setDownloads] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ session-only downloads
-    const saved = JSON.parse(sessionStorage.getItem("downloads") || "[]");
-    setDownloads(saved);
+    const fetchDownloads = async () => {
+      try {
+        const response = await api.getDownloadHistory();
+        setDownloads(response.data);
+      } catch (error) {
+        console.error("Failed to fetch downloads:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDownloads();
   }, []);
 
   return (
@@ -47,8 +56,8 @@ const Profile = () => {
             )}
           </div>
 
-          <h2>{displayName || "Your Name"}</h2>
-          <p className="phone">{phone || "+91 XXXXXXXXXX"}</p>
+          <h2>{displayName}</h2>
+          <p className="phone">{phone}</p>
 
           <button className="edit-btn" onClick={() => navigate("/edit")}>
             <Edit3 /> Edit Profile
@@ -62,7 +71,9 @@ const Profile = () => {
             <h3>Downloaded Quotes</h3>
           </div>
 
-          {downloads.length === 0 ? (
+          {loading ? (
+            <p className="loading-text">Loading downloads...</p>
+          ) : downloads.length === 0 ? (
             <div className="empty-downloads">
               <Image />
               <p>No downloaded quotes yet</p>
@@ -70,9 +81,9 @@ const Profile = () => {
             </div>
           ) : (
             <div className="downloads-grid">
-              {downloads.map((img, index) => (
+              {downloads.map((item, index) => (
                 <div key={index} className="download-item">
-                  <img src={img} alt={`Quote ${index + 1}`} />
+                  <img src={item.imageUrl} alt={`Quote ${index + 1}`} />
                 </div>
               ))}
             </div>

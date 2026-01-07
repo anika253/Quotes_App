@@ -10,6 +10,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const quoteRoutes = require('./src/routes/quoteRoutes');
+const downloadRoutes = require('./src/routes/downloadRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/quotes', quoteRoutes);
+app.use('/api/downloads', downloadRoutes);
 
 // Health Check
 app.get('/', (req, res) => {

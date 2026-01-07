@@ -113,13 +113,25 @@ const Home = () => {
   };
 
   const handleDownload = async () => {
-    const brandedImage = await generateBrandedImage();
-    const link = document.createElement("a");
-    link.href = brandedImage;
-    link.download = `suvichar_${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const brandedImage = await generateBrandedImage();
+      
+      // Save to database
+      await api.saveDownload({
+        imageUrl: quote.image,
+        quoteId: quote.id || current.toString()
+      });
+
+      const link = document.createElement("a");
+      link.href = brandedImage;
+      link.download = `suvichar_${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Failed to save download history.");
+    }
   };
 
   return (

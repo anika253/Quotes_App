@@ -62,6 +62,10 @@ export const api = {
     getQuotes: (category) => apiClient.get('/quotes', { params: { category } }),
     
     getCategories: () => apiClient.get('/quotes/categories'),
+
+    saveDownload: (downloadData) => apiClient.post('/downloads/save', downloadData),
+
+    getDownloadHistory: () => apiClient.get('/downloads/history'),
 };
 
 export default apiClient;
