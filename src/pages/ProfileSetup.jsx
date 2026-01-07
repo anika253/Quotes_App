@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 import "./ProfileSetup.css";
 
 const ProfileSetup = () => {
@@ -21,12 +22,22 @@ const ProfileSetup = () => {
     localStorage.setItem(isPersonal ? "userImage" : "businessImage", imageURL);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
 
-    localStorage.setItem(isPersonal ? "userName" : "businessName", name.trim());
-
-    navigate("/home");
+    try {
+      const phoneNumber = localStorage.getItem("phoneNumber");
+      await api.setupProfile({
+        phoneNumber,
+        name: name.trim(),
+        photo: image,
+        type: purpose
+      });
+      localStorage.setItem(isPersonal ? "userName" : "businessName", name.trim());
+      navigate("/home");
+    } catch (error) {
+      alert("Failed to save profile");
+    }
   };
 
   return (

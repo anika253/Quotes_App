@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
+import { api } from "../api";
 import "./Upgrade.css";
 
 const Upgrade = () => {
@@ -28,6 +29,36 @@ const Upgrade = () => {
       title: message,
       duration: 2500,
     });
+  };
+
+  const handleSubscribe = async () => {
+    try {
+      const phoneNumber = localStorage.getItem("phoneNumber") || "guest";
+      const amount = selectedPlan === "monthly" ? 199 : 999;
+      
+      showToast("Initiating payment...");
+      
+      const response = await api.initiatePayment({
+        userId: phoneNumber,
+        planId: selectedPlan,
+        amount: amount
+      });
+
+      if (response.paymentId) {
+        showToast(`Payment initiated! ID: ${response.paymentId}`);
+        // Mocking a successful payment after 2 seconds
+        setTimeout(async () => {
+          const verifyRes = await api.verifyPayment(response.paymentId);
+          if (verifyRes.status === 'success') {
+            showToast("Payment successful! You are now a Premium member.");
+            localStorage.setItem("isPremium", "true");
+          }
+        }, 2000);
+      }
+    } catch (error) {
+      showToast("Payment failed. Please try again.");
+      console.error(error);
+    }
   };
 
   return (
@@ -77,7 +108,7 @@ const Upgrade = () => {
         {/* Subscribe */}
         <button
           className="subscribe-btn"
-          onClick={() => showToast("Payment flow coming soon")}
+          onClick={handleSubscribe}
         >
           <Crown /> Subscribe Now
         </button>

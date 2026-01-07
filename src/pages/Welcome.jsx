@@ -1,16 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Smartphone } from "lucide-react";
+import { api } from "../api";
 import "./Welcome.css";
 
 const Welcome = () => {
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (phone.length === 10) {
-      localStorage.setItem("phone", `+91 ${phone}`);
-      navigate("/otp", { state: { phone } });
+      try {
+        await api.sendOtp(phone);
+        localStorage.setItem("phone", `+91 ${phone}`);
+        navigate("/otp", { state: { phone } });
+      } catch (error) {
+        alert("Failed to send OTP");
+      }
     } else {
       alert("Enter valid 10-digit number");
     }

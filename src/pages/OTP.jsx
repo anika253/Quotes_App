@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { api } from "../api";
 import "./OTP.css";
 
 const OTP = () => {
@@ -54,20 +55,35 @@ const OTP = () => {
     inputRefs.current[Math.min(pastedData.length, 5)]?.focus();
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const otpString = otp.join("");
     if (otpString.length === 6) {
-      navigate("/purpose");
+      try {
+        const response = await api.verifyOtp(phone, otpString);
+        if (response.token) {
+          localStorage.setItem("phoneNumber", phone);
+          navigate("/purpose");
+        } else {
+          alert(response.message || "Invalid OTP");
+        }
+      } catch (error) {
+        alert("Verification failed");
+      }
     } else {
       alert("Enter 6-digit OTP");
     }
   };
 
-  const resendOTP = () => {
-    setTimer(30);
-    setOtp(["", "", "", "", "", ""]);
-    inputRefs.current[0]?.focus();
-    alert("OTP resent (mock)");
+  const resendOTP = async () => {
+    try {
+      await api.sendOtp(phone);
+      setTimer(30);
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
+      alert("OTP resent (mock: 123456)");
+    } catch (error) {
+      alert("Failed to resend OTP");
+    }
   };
 
   const isValidOtp = otp.every((digit) => digit !== "");
