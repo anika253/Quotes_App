@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import "./ProfileSetup.css";
@@ -8,9 +8,20 @@ const ProfileSetup = () => {
   const purpose = localStorage.getItem("purpose"); // PERSONAL | BUSINESS
 
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const isPersonal = purpose === "PERSONAL";
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setName(user.name || "");
+      setEmail(user.email || "");
+    }
+  }, []);
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -19,24 +30,35 @@ const ProfileSetup = () => {
     const imageURL = URL.createObjectURL(file);
     setImage(imageURL);
 
-    localStorage.setItem(isPersonal ? "userImage" : "businessImage", imageURL);
+    localStorage.setItem("userImage", imageURL);
   };
 
   const handleSave = async () => {
     if (!name.trim()) return;
 
+    setLoading(true);
     try {
-      const phoneNumber = localStorage.getItem("phoneNumber");
-      await api.setupProfile({
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const phoneNumber = storedUser?.phoneNumber;
+      
+      const response = await api.setupProfile({
         phoneNumber,
         name: name.trim(),
-        photo: image,
-        type: purpose
+        email: email.trim(),
+        purpose: purpose
       });
-      localStorage.setItem(isPersonal ? "userName" : "businessName", name.trim());
-      navigate("/home");
+
+      if (response.user) {
+        localStorage.setItem("user", JSON.stringify(response.user));
+        navigate("/home");
+      } else {
+        alert(response.message || "Failed to save profile");
+      }
     } catch (error) {
+      console.error("Profile setup error:", error);
       alert("Failed to save profile");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,13 +104,23 @@ const ProfileSetup = () => {
           onChange={(e) => setName(e.target.value)}
         />
 
+        {/* Email Input */}
+        <input
+          className="profile-input"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{ marginTop: '10px' }}
+        />
+
         {/* Actions */}
         <button
           className="primary-btn"
-          disabled={!name.trim()}
+          disabled={!name.trim() || loading}
           onClick={handleSave}
         >
-          Save & Continue
+          {loading ? "Saving..." : "Save & Continue"}
         </button>
 
         <button className="secondary-btn" onClick={() => navigate("/home")}>

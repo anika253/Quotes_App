@@ -1,5 +1,35 @@
 const API_BASE_URL = 'http://localhost:5000/api';
 
+// Helper to get token from localStorage
+const getToken = () => localStorage.getItem('token');
+
+// Helper for authenticated requests
+const authFetch = async (url, options = {}) => {
+    const token = getToken();
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+        ...options,
+        headers,
+    });
+
+    if (response.status === 401) {
+        // Handle unauthorized (e.g., redirect to login)
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    }
+
+    return response.json();
+};
+
 export const api = {
     sendOtp: async (phoneNumber) => {
         const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
@@ -15,31 +45,33 @@ export const api = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber, otp }),
         });
-        return response.json();
+        const data = await response.json();
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        return data;
     },
     setupProfile: async (profileData) => {
-        const response = await fetch(`${API_BASE_URL}/profile/setup`, {
+        return authFetch('/profile/setup', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(profileData),
         });
-        return response.json();
+    },
+    getProfile: async (phoneNumber) => {
+        return authFetch(`/profile/get?phoneNumber=${phoneNumber}`);
     },
     initiatePayment: async (paymentData) => {
-        const response = await fetch(`${API_BASE_URL}/payment/initiate`, {
+        return authFetch('/payment/initiate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(paymentData),
         });
-        return response.json();
     },
     verifyPayment: async (paymentId) => {
-        const response = await fetch(`${API_BASE_URL}/payment/verify`, {
+        return authFetch('/payment/verify', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ paymentId }),
         });
-        return response.json();
     },
     getCategories: async () => {
         const response = await fetch(`${API_BASE_URL}/quotes/categories`);

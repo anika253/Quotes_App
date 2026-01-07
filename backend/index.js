@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const logger = require('./src/middleware/logger');
@@ -11,6 +13,11 @@ const quoteRoutes = require('./src/routes/quoteRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB', err));
 
 // Middleware
 app.use(cors());
