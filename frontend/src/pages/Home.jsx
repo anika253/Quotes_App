@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -22,6 +22,7 @@ const categories = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const canvasRef = useRef(null);
   const [current, setCurrent] = useState(0);
   const [activeCategory, setActiveCategory] = useState(categories[0]);
   const [userData, setUserData] = useState(null);
@@ -34,8 +35,9 @@ const Home = () => {
   }, []);
 
   const userName = userData?.name || "";
-  const userImage = localStorage.getItem("userImage"); // Still using local for images for now as we don't have S3 upload yet
+  const userImage = localStorage.getItem("userImage");
   const showDate = localStorage.getItem("showDate") !== "false";
+  const isPremium = userData?.subscriptionStatus === 'pro';
 
   if (!quotes || quotes.length === 0) {
     return (
@@ -55,31 +57,74 @@ const Home = () => {
     setCurrent((prev) => (prev === 0 ? quotes.length - 1 : prev - 1));
   };
 
-  const handleShare = () => {
+  const generateBrandedImage = () => {
+    return new Promise((resolve) => {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = quote.image;
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        if (isPremium) {
+          // Add branding
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+          ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+          ctx.fillStyle = "white";
+          ctx.font = "bold 30px Arial";
+          ctx.fillText(userName, 120, canvas.height - 40);
+
+          if (userImage) {
+            const profileImg = new Image();
+            profileImg.crossOrigin = "anonymous";
+            profileImg.src = userImage;
+            profileImg.onload = () => {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(60, canvas.height - 50, 40, 0, Math.PI * 2);
+              ctx.clip();
+              ctx.drawImage(profileImg, 20, canvas.height - 90, 80, 80);
+              ctx.restore();
+              resolve(canvas.toDataURL("image/png"));
+            };
+            profileImg.onerror = () => resolve(canvas.toDataURL("image/png"));
+          } else {
+            resolve(canvas.toDataURL("image/png"));
+          }
+        } else {
+          resolve(canvas.toDataURL("image/png"));
+        }
+      };
+    });
+  };
+
+  const handleShare = async () => {
+    const brandedImage = await generateBrandedImage();
     const message = encodeURIComponent(
       `"${quote.text}"\n\nCreated using Suvichar App`
     );
+    // In a real mobile app, you'd share the image file. For web, we share the text.
     window.open(`https://wa.me/?text=${message}`, "_blank");
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    const brandedImage = await generateBrandedImage();
     const link = document.createElement("a");
-    link.href = quote.image;
-    link.download = "suvichar.png";
+    link.href = brandedImage;
+    link.download = `suvichar_${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    const existing = JSON.parse(sessionStorage.getItem("downloads")) || [];
-
-    if (!existing.includes(quote.image)) {
-      existing.push(quote.image);
-      sessionStorage.setItem("downloads", JSON.stringify(existing));
-    }
   };
 
   return (
     <div className="home-container">
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
       {/* Header */}
       <header className="top-bar">
         <h1 className="app-title">Suvichar</h1>
@@ -116,11 +161,11 @@ const Home = () => {
 
           {showDate && <div className="date-badge">17 नवंबर</div>}
 
-          {userImage && (
+          {isPremium && userImage && (
             <img src={userImage} alt="User" className="user-avatar" />
           )}
 
-          {userName && <div className="user-name">{userName}</div>}
+          {isPremium && userName && <div className="user-name">{userName}</div>}
 
           <button className="nav-btn left" onClick={prevQuote}>
             <ChevronLeft />

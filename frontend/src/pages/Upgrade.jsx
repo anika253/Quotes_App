@@ -18,11 +18,8 @@ const Upgrade = () => {
   const { toast } = useToast();
   const [selectedPlan, setSelectedPlan] = useState("yearly");
 
-  const purpose = localStorage.getItem("purpose");
-  const userName = localStorage.getItem("userName");
-  const businessName = localStorage.getItem("businessName");
-
-  const displayName = purpose === "BUSINESS" ? businessName : userName;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const displayName = storedUser.name || "Your Brand Name";
 
   const showToast = (message) => {
     toast({
@@ -33,25 +30,32 @@ const Upgrade = () => {
 
   const handleSubscribe = async () => {
     try {
-      const phoneNumber = localStorage.getItem("phoneNumber") || "guest";
       const amount = selectedPlan === "monthly" ? 199 : 999;
       
       showToast("Initiating payment...");
       
       const response = await api.initiatePayment({
-        userId: phoneNumber,
-        planId: selectedPlan,
+        plan: selectedPlan,
         amount: amount
       });
 
-      if (response.paymentId) {
-        showToast(`Payment initiated! ID: ${response.paymentId}`);
+      const paymentData = response.data;
+
+      if (paymentData.paymentId) {
+        showToast(`Payment initiated! ID: ${paymentData.paymentId}`);
         // Mocking a successful payment after 2 seconds
         setTimeout(async () => {
-          const verifyRes = await api.verifyPayment(response.paymentId);
-          if (verifyRes.status === 'success') {
-            showToast("Payment successful! You are now a Premium member.");
-            localStorage.setItem("isPremium", "true");
+          try {
+            const verifyRes = await api.verifyPayment(paymentData.paymentId);
+            if (verifyRes.data.status === 'completed') {
+              showToast("Payment successful! You are now a Premium member.");
+              // Update local user data
+              const updatedUser = { ...storedUser, subscriptionStatus: 'pro' };
+              localStorage.setItem("user", JSON.stringify(updatedUser));
+              navigate("/home");
+            }
+          } catch (err) {
+            showToast("Verification failed.");
           }
         }, 2000);
       }
@@ -77,7 +81,7 @@ const Upgrade = () => {
           <div className="preview-icon">
             <Crown />
           </div>
-          <h3>{displayName || "Your Brand Name"}</h3>
+          <h3>{displayName}</h3>
           <p className="preview-sub">
             <Sparkles /> Premium Branding Preview
           </p>

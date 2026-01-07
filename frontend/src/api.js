@@ -1,80 +1,65 @@
+import axios from 'axios';
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// Helper to get token from localStorage
-const getToken = () => localStorage.getItem('token');
-
-// Helper for authenticated requests
-const authFetch = async (url, options = {}) => {
-    const token = getToken();
-    const headers = {
+const apiClient = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
-    };
+    },
+});
 
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+// Add a request interceptor to include the JWT token
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
+);
 
-    const response = await fetch(`${API_BASE_URL}${url}`, {
-        ...options,
-        headers,
-    });
-
-    if (response.status === 401) {
-        // Handle unauthorized (e.g., redirect to login)
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/';
+// Add a response interceptor to handle unauthorized errors
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+        return Promise.reject(error);
     }
-
-    return response.json();
-};
+);
 
 export const api = {
-    sendOtp: async (phoneNumber) => {
-        const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber }),
-        });
-        return response.json();
-    },
+    sendOtp: (phoneNumber) => apiClient.post('/auth/send-otp', { phoneNumber }),
+    
     verifyOtp: async (phoneNumber, otp) => {
-        const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber, otp }),
-        });
-        const data = await response.json();
+        const response = await apiClient.post('/auth/verify-otp', { phoneNumber, otp });
+        const data = response.data;
         if (data.token) {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
         }
         return data;
     },
-    setupProfile: async (profileData) => {
-        return authFetch('/profile/setup', {
-            method: 'POST',
-            body: JSON.stringify(profileData),
-        });
-    },
-    getProfile: async (phoneNumber) => {
-        return authFetch(`/profile/get?phoneNumber=${phoneNumber}`);
-    },
-    initiatePayment: async (paymentData) => {
-        return authFetch('/payment/initiate', {
-            method: 'POST',
-            body: JSON.stringify(paymentData),
-        });
-    },
-    verifyPayment: async (paymentId) => {
-        return authFetch('/payment/verify', {
-            method: 'POST',
-            body: JSON.stringify({ paymentId }),
-        });
-    },
-    getCategories: async () => {
-        const response = await fetch(`${API_BASE_URL}/quotes/categories`);
-        return response.json();
-    },
+
+    setupProfile: (profileData) => apiClient.post('/profile/setup', profileData),
+    
+    getProfile: (phoneNumber) => apiClient.get(`/profile/get`, { params: { phoneNumber } }),
+    
+    initiatePayment: (paymentData) => apiClient.post('/payment/initiate', paymentData),
+    
+    verifyPayment: (paymentId) => apiClient.post('/payment/verify', { paymentId }),
+    
+    getQuotes: (category) => apiClient.get('/quotes', { params: { category } }),
+    
+    getCategories: () => apiClient.get('/quotes/categories'),
 };
+
+export default apiClient;

@@ -1,23 +1,50 @@
-const payments = [];
+const Payment = require('../models/Payment');
+const User = require('../models/User');
 
-exports.initiatePayment = (req, res) => {
-    const { userId, planId, amount } = req.body;
-    const paymentId = `pay_${Math.random().toString(36).substr(2, 9)}`;
-    payments.push({ paymentId, userId, planId, amount, status: 'pending' });
-    res.status(200).json({ 
-        message: 'Payment initiated', 
-        paymentId,
-        checkoutUrl: `https://mock-payment-gateway.com/pay/${paymentId}`
-    });
+exports.initiatePayment = async (req, res) => {
+    try {
+        const { amount, plan } = req.body;
+        const userId = req.userData.userId;
+
+        const payment = new Payment({
+            userId,
+            amount,
+            plan,
+            status: 'pending'
+        });
+
+        await payment.save();
+
+        res.status(200).json({ 
+            message: 'Payment initiated', 
+            paymentId: payment._id,
+            amount 
+        });
+    } catch (error) {
+        console.error('Error initiating payment:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 };
 
-exports.verifyPayment = (req, res) => {
-    const { paymentId } = req.body;
-    const payment = payments.find(p => p.paymentId === paymentId);
-    if (payment) {
-        payment.status = 'success';
-        res.status(200).json({ message: 'Payment verified successfully', status: 'success' });
-    } else {
-        res.status(404).json({ message: 'Payment not found' });
+exports.verifyPayment = async (req, res) => {
+    try {
+        const { paymentId, status } = req.body;
+        
+        const payment = await Payment.findById(paymentId);
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment record not found' });
+        }
+
+        payment.status = status || 'completed';
+        await payment.save();
+
+        if (payment.status === 'completed') {
+            await User.findByIdAndUpdate(payment.userId, { subscriptionStatus: 'pro' });
+        }
+
+        res.status(200).json({ message: 'Payment verified', status: payment.status });
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
