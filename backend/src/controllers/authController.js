@@ -1,108 +1,164 @@
 const User = require('../models/User');
-const Otp = require('../models/Otp');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
-exports.sendOtp = async (req, res) => {
+// User Signup
+exports.signup = async (req, res) => {
     try {
-        const { phoneNumber } = req.body;
-        if (!phoneNumber) {
-            return res.status(400).json({ message: 'Phone number is required' });
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
         }
 
-        // Generate a 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // For testing/demo purposes, we'll still use '123456' if you prefer, 
-        // but let's make it dynamic and store it in DB.
-        // If you want to keep it '123456' for now, uncomment the next line:
-        // const otp = '123456';
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
 
-        // Save OTP to MongoDB (will overwrite any existing OTP for this number)
-        await Otp.findOneAndUpdate(
-            { phoneNumber },
-            { otp, createdAt: new Date() },
-            { upsert: true, new: true }
-        );
+        // Validate password length
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
 
-        console.log(`OTP for ${phoneNumber} is ${otp}`);
-        
-        // In production, send SMS here. For now, return it in response for testing.
-        res.status(200).json({ 
-            message: 'OTP sent successfully', 
-            mockOtp: otp // Remove this in production
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create new user
+        const user = new User({
+            email,
+            password: hashedPassword,
+            subscriptionStatus: 'free',
+            isProfileComplete: false,
         });
-    } catch (error) {
-        console.error('Error in sendOtp:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
+        await user.save();
 
-exports.verifyOtp = async (req, res) => {
-    try {
-        const { phoneNumber, otp } = req.body;
-        
-        if (!phoneNumber || !otp) {
-            return res.status(400).json({ message: 'Phone number and OTP are required' });
-        }
-
-        // Find the OTP in MongoDB
-        const otpRecord = await Otp.findOne({ phoneNumber, otp });
-
-        if (!otpRecord) {
-            return res.status(400).json({ message: 'Invalid or expired OTP' });
-        }
-
-        // OTP is valid, delete it from DB
-        await Otp.deleteOne({ _id: otpRecord._id });
-
-        // Find or create user in MongoDB
-        const user = await User.findOneAndUpdate(
-            { phoneNumber },
-            { $setOnInsert: { phoneNumber } },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
-
+        // Generate JWT token
         const token = jwt.sign(
-            { userId: user._id, phoneNumber: user.phoneNumber },
-            process.env.JWT_SECRET,
+            { userId: user._id, email: user.email },
+            process.env.JWT_SECRET || 'your-secret-key-change-in-production',
             { expiresIn: '7d' }
         );
 
-        res.status(200).json({ 
-            message: 'OTP verified successfully', 
+        res.status(201).json({
+            message: 'User created successfully',
             token,
             user: {
                 id: user._id,
-                phoneNumber: user.phoneNumber,
-                isProfileComplete: user.isProfileComplete,
-                name: user.name,
                 email: user.email,
-                subscriptionStatus: user.subscriptionStatus
-            }
+                name: user.name,
+                userImage: user.userImage,
+                purpose: user.purpose,
+                subscriptionStatus: user.subscriptionStatus,
+                isProfileComplete: user.isProfileComplete,
+                showDate: user.showDate,
+            },
         });
     } catch (error) {
-        console.error('Error in verifyOtp:', error);
+        console.error('Error in signup:', error);
+        if (error.code === 11000) {
+            // Check if it's an email duplicate or phoneNumber index issue
+            if (error.keyPattern && error.keyPattern.email) {
+                return res.status(400).json({ message: 'Email already exists' });
+            } else if (error.keyPattern && error.keyPattern.phoneNumber) {
+                // This is the old phoneNumber index issue - need to run migration
+                return res.status(500).json({ 
+                    message: 'Database configuration error. Please contact support or run database migration.' 
+                });
+            }
+            return res.status(400).json({ message: 'Email already exists' });
+        }
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 
+// User Login
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        // Check if user has a password (for old users without password)
+        if (!user.password) {
+            return res.status(401).json({ 
+                message: 'Account needs to be reset. Please sign up again or contact support.' 
+            });
+        }
+
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user._id, email: user.email },
+            process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+            { expiresIn: '7d' }
+        );
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                userImage: user.userImage,
+                purpose: user.purpose,
+                subscriptionStatus: user.subscriptionStatus,
+                isProfileComplete: user.isProfileComplete,
+                showDate: user.showDate,
+            },
+        });
+    } catch (error) {
+        console.error('Error in login:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Check authentication status
 exports.checkAuth = async (req, res) => {
     try {
-        const user = await User.findById(req.userData.userId);
+        const userId = req.userData.userId;
+        const user = await User.findById(userId);
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.status(200).json({ 
+
+        res.status(200).json({
+            authenticated: true,
             user: {
                 id: user._id,
-                phoneNumber: user.phoneNumber,
-                isProfileComplete: user.isProfileComplete,
-                name: user.name,
                 email: user.email,
-                subscriptionStatus: user.subscriptionStatus
-            }
+                name: user.name,
+                userImage: user.userImage,
+                purpose: user.purpose,
+                subscriptionStatus: user.subscriptionStatus,
+                isProfileComplete: user.isProfileComplete,
+                showDate: user.showDate,
+            },
         });
     } catch (error) {
+        console.error('Error in checkAuth:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

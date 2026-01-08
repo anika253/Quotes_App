@@ -38,20 +38,10 @@ const ProfileSetup = () => {
 
     setLoading(true);
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const phoneNumber = storedUser?.phoneNumber;
-      
-      if (!phoneNumber) {
-        alert("Session expired. Please login again.");
-        navigate("/");
-        return;
-      }
-
       const response = await api.setupProfile({
-        phoneNumber,
         name: name.trim(),
         email: email.trim(),
-        purpose: purpose
+        purpose: purpose.toLowerCase() // Convert to lowercase to match backend enum
       });
 
       // Axios response data is in response.data

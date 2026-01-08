@@ -116,11 +116,18 @@
   border-radius: 14px;
   overflow: hidden;
   transition: all 0.2s ease;
+  background: white;
 }
 
 .phone-input-wrapper:focus-within {
   border-color: #7c3aed;
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.input-icon {
+  padding: 16px;
+  color: #6b7280;
+  flex-shrink: 0;
 }
 
 .country-code {
@@ -134,7 +141,8 @@
   flex: 1;
   border: none;
   padding: 16px;
-  font-size: 18px;
+  padding-left: 0;
+  font-size: 16px;
   outline: none;
   background: transparent;
 }

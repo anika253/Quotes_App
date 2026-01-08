@@ -49,10 +49,27 @@ const Upgrade = () => {
             const verifyRes = await api.verifyPayment(paymentData.paymentId);
             if (verifyRes.data.status === 'completed') {
               showToast("Payment successful! You are now a Premium member.");
-              // Update local user data
-              const updatedUser = { ...storedUser, subscriptionStatus: 'pro' };
-              localStorage.setItem("user", JSON.stringify(updatedUser));
+              
+              // Refresh user data from backend to get updated subscription status
+              try {
+                const authResponse = await api.checkAuth();
+                if (authResponse.data?.user) {
+                  localStorage.setItem("user", JSON.stringify(authResponse.data.user));
+                } else {
+                  // Fallback: update local storage
+                  const updatedUser = { ...storedUser, subscriptionStatus: 'pro' };
+                  localStorage.setItem("user", JSON.stringify(updatedUser));
+                }
+              } catch (error) {
+                console.warn("Could not refresh user data:", error);
+                // Fallback: update local storage
+                const updatedUser = { ...storedUser, subscriptionStatus: 'pro' };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              }
+              
               navigate("/home");
+            } else {
+              showToast("Payment verification failed. Please try again.");
             }
           } catch (err) {
             showToast("Verification failed.");

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { api } from "./api";
 
 import Welcome from "./pages/Welcome";
-import OTP from "./pages/OTP";
 import PurposeSelection from "./pages/PurposeSelection";
 import ProfileSetup from "./pages/ProfileSetup";
 import Home from "./pages/Home";
@@ -19,16 +18,17 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
-      const publicPaths = ["/", "/otp"];
+      const publicPaths = ["/"];
       
       if (token) {
         try {
           const response = await api.checkAuth();
           if (response.data.user) {
             localStorage.setItem("user", JSON.stringify(response.data.user));
-            // If user is on a public path but logged in, redirect to home
-            if (publicPaths.includes(location.pathname)) {
-              navigate("/home");
+            // If user is logged in and on root path, redirect to home
+            // This is normal behavior - logged in users go to home page
+            if (location.pathname === "/") {
+              navigate("/home", { replace: true });
             }
           }
         } catch (error) {
@@ -59,7 +59,6 @@ function App() {
     <Routes>
       {/* Onboarding */}
       <Route path="/" element={<Welcome />} />
-      <Route path="/otp" element={<OTP />} />
       <Route path="/purpose" element={<PurposeSelection />} />
       <Route path="/profile-setup" element={<ProfileSetup />} />
       <Route path="/upgrade" element={<Upgrade />} />

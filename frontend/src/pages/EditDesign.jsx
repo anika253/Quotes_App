@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Lock, Camera } from "lucide-react";
+import { api } from "../api";
 import "./EditDesign.css";
 
 const EditDesign = () => {
@@ -9,46 +10,110 @@ const EditDesign = () => {
 
   const savedPurpose = localStorage.getItem("purpose") || "PERSONAL";
   const [activeTab, setActiveTab] = useState(savedPurpose);
+  const [loading, setLoading] = useState(false);
 
+  // Get name from backend user data first, then fallback to localStorage
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [name, setName] = useState(
-    activeTab === "BUSINESS"
+    storedUser?.name || 
+    (activeTab === "BUSINESS"
       ? localStorage.getItem("businessName") || ""
-      : localStorage.getItem("userName") || ""
+      : localStorage.getItem("userName") || "")
   );
 
   const [image, setImage] = useState(localStorage.getItem("userImage") || null);
 
-  const [showDate, setShowDate] = useState(true);
+  const [showDate, setShowDate] = useState(
+    localStorage.getItem("showDate") !== "false"
+  );
   const [showUpgrade, setShowUpgrade] = useState(false);
+
+  // Load user data from backend (MongoDB) on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const response = await api.getProfile();
+        if (response.data?.user) {
+          const user = response.data.user;
+          // Set name from MongoDB
+          if (user.name) {
+            setName(user.name);
+          }
+          // Set image from MongoDB
+          if (user.userImage) {
+            setImage(user.userImage);
+          }
+          // Set showDate from MongoDB
+          if (user.showDate !== undefined) {
+            setShowDate(user.showDate);
+          }
+          // Update localStorage as cache
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+      } catch (error) {
+        console.warn("Could not load user profile from backend:", error);
+        // Fallback to localStorage cache
+        const cachedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        if (cachedUser.name) setName(cachedUser.name);
+        if (cachedUser.userImage) setImage(cachedUser.userImage);
+      }
+    };
+    loadUserData();
+  }, []);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      // Convert to base64 to store in MongoDB
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setImage(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = () => {
-    if (activeTab === "BUSINESS") {
-      localStorage.setItem("businessName", name);
-    } else {
-      localStorage.setItem("userName", name);
+  const handleSave = async () => {
+    if (!name.trim()) {
+      alert("Please enter a name");
+      return;
     }
 
-    if (image) {
-      localStorage.setItem("userImage", image);
-    }
+    setLoading(true);
+    try {
+      // Get purpose from stored user or localStorage
+      const purpose = storedUser?.purpose || localStorage.getItem("purpose")?.toLowerCase() || "personal";
 
-    navigate("/");
+      // Update profile in MongoDB (backend)
+      const response = await api.setupProfile({
+        name: name.trim(),
+        email: storedUser?.email || "",
+        purpose: purpose,
+        userImage: image || null, // Save base64 image to MongoDB
+        showDate: showDate
+      });
+
+      if (response.data?.user) {
+        // Update localStorage cache with backend response
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        alert("Profile saved successfully!");
+        navigate("/home");
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error) {
+      console.error("Save failed:", error);
+      alert(error.response?.data?.message || "Failed to save. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setName(
-      tab === "BUSINESS"
-        ? localStorage.getItem("businessName") || ""
-        : localStorage.getItem("userName") || ""
-    );
+    // Name comes from MongoDB user data, not localStorage
+    // Keep current name when switching tabs
   };
 
   return (
@@ -115,7 +180,10 @@ const EditDesign = () => {
           <span>Show Date</span>
           <button
             className={showDate ? "toggle on" : "toggle"}
-            onClick={() => setShowDate(!showDate)}
+            onClick={() => {
+              setShowDate(!showDate);
+              // Will be saved to backend when user clicks Save
+            }}
           >
             <span />
           </button>
@@ -136,8 +204,8 @@ const EditDesign = () => {
         )}
 
         {/* Actions */}
-        <button className="save-btn" onClick={handleSave}>
-          Save & Continue
+        <button className="save-btn" onClick={handleSave} disabled={loading}>
+          {loading ? "Saving..." : "Save & Continue"}
         </button>
 
         <button className="skip-btn" onClick={() => navigate("/")}>

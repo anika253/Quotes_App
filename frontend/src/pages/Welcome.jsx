@@ -1,71 +1,132 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Smartphone } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { api } from "../api";
 import "./Welcome.css";
 
 const Welcome = () => {
-  const [phone, setPhone] = useState("");
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleContinue = async () => {
-    if (phone.length === 10) {
-      setLoading(true);
-      try {
-        await api.sendOtp(phone);
-        // Store phone for reference in OTP page
-        navigate("/otp", { state: { phone } });
-      } catch (error) {
-        console.error("Send OTP error:", error);
-        alert("Failed to send OTP. Please try again.");
-      } finally {
-        setLoading(false);
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateEmail(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let response;
+      if (isLogin) {
+        response = await api.login(email, password);
+      } else {
+        response = await api.signup(email, password);
       }
-    } else {
-      alert("Enter valid 10-digit number");
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        navigate("/purpose");
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      const errorMessage = error.response?.data?.message || 
+        (isLogin ? "Login failed. Please try again." : "Signup failed. Please try again.");
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const isValidPhone = phone.length === 10;
+  const isValid = validateEmail(email) && password.length >= 6;
 
   return (
     <div className="welcome-container">
       <div className="welcome-card">
         <div className="welcome-icon">
-          <Smartphone />
+          <Mail />
         </div>
 
         <h1 className="welcome-title">Welcome 🙏</h1>
         <p className="welcome-subtitle">
-          Register your phone number to continue
+          {isLogin ? "Sign in to your account" : "Create your account"}
         </p>
 
-        <label className="phone-label">Phone Number</label>
-        <div className="phone-input-wrapper">
-          <span className="country-code">+91</span>
-          <input
-            type="tel"
-            placeholder="9876543210"
-            value={phone}
-            maxLength={10}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <label className="phone-label">Email Address</label>
+          <div className="phone-input-wrapper">
+            <Mail className="input-icon" size={20} />
+            <input
+              type="email"
+              placeholder="your.email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        {phone.length > 0 && phone.length < 10 && (
-          <p className="error-text">Please enter a valid 10-digit number</p>
-        )}
+          {email.length > 0 && !validateEmail(email) && (
+            <p className="error-text">Please enter a valid email address</p>
+          )}
 
-        <button
-          className="continue-btn"
-          onClick={handleContinue}
-          disabled={!isValidPhone || loading}
-        >
-          {loading ? "Sending..." : "Continue"}
-        </button>
+          <label className="phone-label" style={{ marginTop: "16px" }}>Password</label>
+          <div className="phone-input-wrapper">
+            <Lock className="input-icon" size={20} />
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
+              required
+            />
+          </div>
 
-        <p className="terms-text">
+          {password.length > 0 && password.length < 6 && (
+            <p className="error-text">Password must be at least 6 characters</p>
+          )}
+
+          <button
+            type="submit"
+            className="continue-btn"
+            disabled={!isValid || loading}
+          >
+            {loading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
+          </button>
+        </form>
+
+        <p className="terms-text" style={{ marginTop: "16px" }}>
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <a 
+            href="#" 
+            onClick={(e) => {
+              e.preventDefault();
+              setIsLogin(!isLogin);
+              setEmail("");
+              setPassword("");
+            }}
+            style={{ color: "#007bff", cursor: "pointer" }}
+          >
+            {isLogin ? "Sign Up" : "Sign In"}
+          </a>
+        </p>
+
+        <p className="terms-text" style={{ marginTop: "8px", fontSize: "12px" }}>
           By continuing, you agree to our <a href="#">Terms of Service</a> and{" "}
           <a href="#">Privacy Policy</a>
         </p>

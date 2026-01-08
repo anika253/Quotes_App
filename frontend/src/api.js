@@ -37,27 +37,37 @@ apiClient.interceptors.response.use(
 );
 
 export const api = {
-    sendOtp: (phoneNumber) => apiClient.post('/auth/send-otp', { phoneNumber }),
-    
-    verifyOtp: async (phoneNumber, otp) => {
-        const response = await apiClient.post('/auth/verify-otp', { phoneNumber, otp });
+    signup: async (email, password) => {
+        const response = await apiClient.post('/auth/signup', { email, password });
         const data = response.data;
         if (data.token) {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
         }
-        return data;
+        return response;
+    },
+    
+    login: async (email, password) => {
+        const response = await apiClient.post('/auth/login', { email, password });
+        const data = response.data;
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        return response;
     },
 
     checkAuth: () => apiClient.get('/auth/check-auth'),
 
     setupProfile: (profileData) => apiClient.post('/profile/setup', profileData),
     
-    getProfile: (phoneNumber) => apiClient.get(`/profile/get`, { params: { phoneNumber } }),
+    getProfile: () => apiClient.get('/profile/get'),
     
     initiatePayment: (paymentData) => apiClient.post('/payment/initiate', paymentData),
     
     verifyPayment: (paymentId) => apiClient.post('/payment/verify', { paymentId }),
+    
+    getPaymentStatus: (paymentId) => apiClient.get(`/payment/status/${paymentId}`),
     
     getQuotes: (category) => apiClient.get('/quotes', { params: { category } }),
     

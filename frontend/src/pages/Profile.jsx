@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { User, Edit3, Download, ArrowLeft, Image } from "lucide-react";
+import { User, Edit3, Download, ArrowLeft, Image, LogOut } from "lucide-react";
 import { api } from "../api";
 import "./Profile.css";
 
@@ -8,10 +8,11 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const userImage = localStorage.getItem("userImage");
   
+  // Get data from MongoDB user object
   const displayName = storedUser.name || "Your Name";
-  const phone = storedUser.phoneNumber || "+91 XXXXXXXXXX";
+  const email = storedUser.email || "your.email@example.com";
+  const userImage = storedUser.userImage || null;
 
   const [downloads, setDownloads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,11 +58,25 @@ const Profile = () => {
           </div>
 
           <h2>{displayName}</h2>
-          <p className="phone">{phone}</p>
+          <p className="phone">{email}</p>
 
-          <button className="edit-btn" onClick={() => navigate("/edit")}>
-            <Edit3 /> Edit Profile
-          </button>
+          <div style={{ display: "flex", gap: "12px", flexDirection: "column", width: "100%" }}>
+            <button className="edit-btn" onClick={() => navigate("/edit")}>
+              <Edit3 /> Edit Profile
+            </button>
+            <button 
+              className="edit-btn" 
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                localStorage.removeItem("userImage");
+                navigate("/");
+              }}
+              style={{ background: "#ef4444", color: "white" }}
+            >
+              <LogOut /> Logout
+            </button>
+          </div>
         </div>
 
         {/* Downloads */}
